@@ -29,16 +29,33 @@ ggPointerArrayFinalize(ggPointerArray* _this)
 }
 
 static ggResult
+_ggPointerArrayRealloc(ggPointerArray* _this, uint32_t newCapacity)
+{
+	ggAssert(_this);
+	ggAssert(_this->capacity > 0);
+
+	void** newArray = realloc(_this->array, newCapacity * sizeof(void*));
+	GG_CONDITION(!_this->array, GG_OUT_OF_MEMORY);
+
+	_this->capacity = newCapacity;
+	_this->array = newArray;
+
+	return GG_OK;
+}
+
+static ggResult
 _ggPointerArrayExpand(ggPointerArray* _this)
 {
-	// TODO
-	return GG_OK;
+	return _ggPointerArrayRealloc(_this, _this->capacity * 2);
 }
 
 static ggResult
 _ggPointerArrayShrink(ggPointerArray* _this)
 {
-	// TODO
+	ggAssert(_this);
+	if( _this->size * 4 < _this->capacity ) {
+		return _ggPointerArrayRealloc(_this, _this->capacity / 2);
+	}
 	return GG_OK;
 }
 
@@ -112,6 +129,8 @@ ggPointerArrayPrepend(ggPointerArray* _this, void* item)
 void*
 ggPointerArrayPop(ggPointerArray* _this)
 {
+	if( _this->size == 0 ) { return NULL; }
+
 	void* res = _this->array[_this->size - 1];
 	--_this->size;
 

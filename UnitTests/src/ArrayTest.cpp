@@ -59,7 +59,6 @@ TEST_F(ArrayTest, Finalize)
 	EXPECT_EQ(0U, ggPointerArrayGetSize(&arr));
 }
 
-#if 0
 TEST_F(ArrayTest, GetCapacity)
 {
 	ggResult eRes;
@@ -76,6 +75,22 @@ TEST_F(ArrayTest, GetCapacity)
 
 	capacity = ggPointerArrayGetCapacity(&m_array);
 	EXPECT_EQ(32U, capacity);
+
+	for( uint32_t i = 0; i < 10; ++i )
+	{
+		ggPointerArrayPop(&m_array);
+	}
+
+	capacity = ggPointerArrayGetCapacity(&m_array);
+	EXPECT_EQ(16U, capacity);
+
+	for( uint32_t i = 0; i < 10; ++i )
+	{
+		ggPointerArrayPop(&m_array);
+	}
+
+	capacity = ggPointerArrayGetCapacity(&m_array);
+	EXPECT_EQ(2U, capacity);
 }
 
 TEST_F(ArrayTest, GetSize)
@@ -94,7 +109,6 @@ TEST_F(ArrayTest, GetSize)
 		EXPECT_EQ(i + 1, size);
 	}
 }
-#endif
 
 TEST_F(ArrayTest, IsEmpty)
 {
