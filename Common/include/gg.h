@@ -19,6 +19,10 @@ typedef enum ggResult {
 	GG_OUT_OF_MEMORY
 } ggResult;
 
+
+typedef struct ggPointerArray ggPointerArray;
+typedef struct ggList ggList;
+
 #ifdef __cplusplus
 }
 #endif

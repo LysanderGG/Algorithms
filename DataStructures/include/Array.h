@@ -7,11 +7,11 @@ extern "C" {
 #include <stdint.h>
 #include <gg.h>
 
-typedef struct {
+struct ggPointerArray {
 	void**		array;
 	uint32_t	capacity;
 	uint32_t	size;
-} ggPointerArray;
+};
 
 /* Initialize an array with a starting capacity. If 0 is given, uses the default capacity (16). */
 ggResult		ggPointerArrayInitialize	(ggPointerArray* _this, uint32_t capacity);
@@ -21,7 +21,7 @@ void			ggPointerArrayFinalize		(ggPointerArray* _this);
 uint32_t 		ggPointerArrayGetCapacity	(const ggPointerArray* _this);
 /* Number of items in the array */
 uint32_t 		ggPointerArrayGetSize		(const ggPointerArray* _this);
-
+/* Return 1 if empty. */
 uint32_t 		ggPointerArrayIsEmpty		(const ggPointerArray* _this);
 /* Return the item at given index, NULL if the index out of bounds */
 void* 			ggPointerArrayGetItem		(const ggPointerArray* _this, uint32_t index);
