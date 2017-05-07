@@ -265,6 +265,11 @@ ggListReverse(ggList* _this)
 	ggListNode* n1 = _this->head;
 	ggListNode* n2 = n1->next;
 
+	if( n1 )
+	{
+		n1->next = NULL;
+	}
+
 	while( n1 && n2 )
 	{
 		ggListNode* next = n2->next;
@@ -273,6 +278,8 @@ ggListReverse(ggList* _this)
 		n1 = n2;
 		n2 = next;
 	}
+
+	_this->head = n1;
 }
 
 void
@@ -293,6 +300,11 @@ ggListRemove(ggList* _this, void* item)
 		if( prevNode )
 		{
 			prevNode->next = node->next;
+		}
+		else
+		{
+			/* no prevNode means that node is the head. */
+			_this->head = node->next;
 		}
 		free(node);
 	}

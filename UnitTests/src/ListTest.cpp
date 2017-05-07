@@ -264,7 +264,79 @@ TEST_F(ListTest, Erase)
 	EXPECT_EQ(123, (int32_t)ggListGetValueAt(&m_list, 0));
 	EXPECT_EQ(345, (int32_t)ggListGetValueAt(&m_list, 1));
 	EXPECT_EQ(  0, (int32_t)ggListGetValueAt(&m_list, 2)); // NULL
-
-	// todo test assert
 }
 
+TEST_F(ListTest, GetValueAtFromEnd)
+{
+	ggResult eRes;
+
+	int32_t values[] = { 123, 234, 345, 9 };
+	uint32_t nbValues = sizeof(values) / sizeof(*values);
+
+	for( uint32_t i = 0; i < nbValues; ++i )
+	{
+		eRes = ggListPushBack(&m_list, (void*)values[i]);
+		ASSERT_EQ(GG_OK, eRes);
+	}
+
+	EXPECT_EQ(  9, (int32_t)ggListGetValueAtFromEnd(&m_list, 0));
+	EXPECT_EQ(345, (int32_t)ggListGetValueAtFromEnd(&m_list, 1));
+	EXPECT_EQ(234, (int32_t)ggListGetValueAtFromEnd(&m_list, 2));
+	EXPECT_EQ(123, (int32_t)ggListGetValueAtFromEnd(&m_list, 3));
+}
+
+TEST_F(ListTest, Reverse)
+{
+	ggResult eRes;
+
+	int32_t values[] = { 123, 234, 345, 9 };
+	uint32_t nbValues = sizeof(values) / sizeof(*values);
+
+	for( uint32_t i = 0; i < nbValues; ++i )
+	{
+		eRes = ggListPushBack(&m_list, (void*)values[i]);
+		ASSERT_EQ(GG_OK, eRes);
+	}
+
+	ggListReverse(&m_list);
+
+	for( uint32_t i = 0; i < nbValues; ++i )
+	{
+		int32_t value = (int32_t)ggListPopFront(&m_list);
+		EXPECT_EQ(values[nbValues - i - 1], value);
+	}
+}
+
+TEST_F(ListTest, Remove)
+{
+	ggResult eRes;
+
+	int32_t values[] = { 1, 9, 9, 2, 3, 9 };
+	uint32_t nbValues = sizeof(values) / sizeof(*values);
+
+	for( uint32_t i = 0; i < nbValues; ++i )
+	{
+		eRes = ggListPushBack(&m_list, (void*)values[i]);
+		ASSERT_EQ(GG_OK, eRes);
+	}
+
+	ggListRemove(&m_list, (void*)9);
+	EXPECT_EQ(1, (int32_t)ggListGetValueAt(&m_list, 0));
+	EXPECT_EQ(9, (int32_t)ggListGetValueAt(&m_list, 1));
+	EXPECT_EQ(2, (int32_t)ggListGetValueAt(&m_list, 2));
+
+	ggListRemove(&m_list, (void*)9);
+	EXPECT_EQ(1, (int32_t)ggListGetValueAt(&m_list, 0));
+	EXPECT_EQ(2, (int32_t)ggListGetValueAt(&m_list, 1));
+	EXPECT_EQ(3, (int32_t)ggListGetValueAt(&m_list, 2));
+
+	ggListRemove(&m_list, (void*)1);
+	EXPECT_EQ(2, (int32_t)ggListGetValueAt(&m_list, 0));
+	EXPECT_EQ(3, (int32_t)ggListGetValueAt(&m_list, 1));
+	EXPECT_EQ(9, (int32_t)ggListGetValueAt(&m_list, 2));
+
+	ggListRemove(&m_list, (void*)9);
+	EXPECT_EQ(2, (int32_t)ggListGetValueAt(&m_list, 0));
+	EXPECT_EQ(3, (int32_t)ggListGetValueAt(&m_list, 1));
+	EXPECT_EQ(0, (int32_t)ggListGetValueAt(&m_list, 2)); // NULL
+}
