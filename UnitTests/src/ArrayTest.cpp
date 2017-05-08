@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "Array.h"
+#include <Array.h>
 
 class ArrayTest : public ::testing::Test 
 {

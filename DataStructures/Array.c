@@ -1,4 +1,4 @@
-#include "Array.h"
+#include <Array.h>
 #include <gg.h>
 #include <stdlib.h>
 
