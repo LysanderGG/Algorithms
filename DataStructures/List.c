@@ -1,4 +1,4 @@
-#include "List.h"
+#include <List.h>
 #include <gg.h>
 #include <stdlib.h>
 
@@ -108,6 +108,12 @@ ggListPushFront(ggList* _this, void* item)
 	newItem->value = item;
 	newItem->next = _this->head;
 	_this->head = newItem;
+#ifdef GG_LIST_USE_TAIL
+	if( !newItem->next )
+	{
+		_this->tail = newItem;
+	}
+#endif
 
 	return GG_OK;
 }
@@ -122,11 +128,18 @@ ggListPopFront(ggList* _this)
 	if( _this->head )
 	{
 		ret = _this->head->value;
-		void* next = _this->head->next;
+		ggListNode* next = _this->head->next;
 		
 		free(_this->head);
 
 		_this->head = next;
+
+#ifdef GG_LIST_USE_TAIL
+		if( !next || !next->next )
+		{
+			_this->tail = next;
+		}
+#endif
 	}
 
 	return ret;
@@ -152,6 +165,10 @@ ggListPushBack(ggList* _this, void* item)
 	{
 		_this->head = newItem;
 	}
+
+#ifdef GG_LIST_USE_TAIL
+	_this->tail = newItem;
+#endif
 
 	return GG_OK;
 }
@@ -182,6 +199,10 @@ ggListPopBack(ggList* _this)
 			/* no prevNode means that it is the only item in the list. */
 			_this->head = NULL;
 		}
+
+#ifdef  GG_LIST_USE_TAIL
+		_this->tail = prevNode;
+#endif
 
 		free(node);
 	}
@@ -227,6 +248,17 @@ ggListInsert(ggList* _this, uint32_t index, void* item)
 		prevNode->next = newNode;
 	}
 
+#ifdef GG_LIST_USE_TAIL
+	if( !nextNode )
+	{
+		_this->tail = newNode;
+	}
+	else if( !nextNode->next )
+	{
+		_this->tail = nextNode;
+	}
+#endif
+
 	return GG_OK;
 }
 
@@ -244,8 +276,23 @@ ggListErase(ggList* _this, uint32_t index)
 		if( prevNode )
 		{
 			prevNode->next = node->next;
+#ifdef GG_LIST_USE_TAIL
+			if( !prevNode->next )
+			{
+				_this->tail = prevNode;
+			}
+#endif
 		}
+		else
+		{
+#ifdef GG_LIST_USE_TAIL
+			_this->tail = NULL;
+#endif
+		}
+
 		free(node);
+
+
 	}
 }
 
@@ -279,6 +326,9 @@ ggListReverse(ggList* _this)
 		n2 = next;
 	}
 
+#ifdef GG_LIST_USE_TAIL
+	_this->tail = _this->head;
+#endif
 	_this->head = n1;
 }
 
@@ -300,11 +350,23 @@ ggListRemove(ggList* _this, void* item)
 		if( prevNode )
 		{
 			prevNode->next = node->next;
+#ifdef GG_LIST_USE_TAIL
+			if( !prevNode->next )
+			{
+				_this->tail = prevNode;
+			}
+#endif 
 		}
 		else
 		{
 			/* no prevNode means that node is the head. */
 			_this->head = node->next;
+#ifdef GG_LIST_USE_TAIL
+			if( !node->next || !node->next->next )
+			{
+				_this->tail = node->next;
+			}
+#endif
 		}
 		free(node);
 	}

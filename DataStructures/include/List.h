@@ -7,6 +7,8 @@ extern "C" {
 #include <stdint.h>
 #include <gg.h>
 
+//#define GG_LIST_USE_TAIL
+
 typedef struct ggListNode {
 	void*				value;
 	struct ggListNode*	next;
