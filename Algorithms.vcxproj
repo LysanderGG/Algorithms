@@ -120,11 +120,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DataStructures\Array.c" />
+    <ClCompile Include="DataStructures\HashTable.c" />
     <ClCompile Include="DataStructures\List.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\include\gg.h" />
     <ClInclude Include="DataStructures\include\Array.h" />
+    <ClInclude Include="DataStructures\include\HashTable.h" />
     <ClInclude Include="DataStructures\include\List.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
