@@ -189,3 +189,23 @@ TEST_F(HashTableTest, Remove)
 	EXPECT_EQ(GG_OK, eRes);
 	EXPECT_STREQ(resultStr, "collision3");
 }
+
+TEST_F(HashTableTest, Expand)
+{
+	ggResult eRes;
+	ggHashTable intDic;
+	eRes = ggHashTableInitialize(&intDic, ggHash_int, ggComp_int);
+	ASSERT_EQ(GG_OK, eRes);
+
+	for( uint32_t i = 0; i < 500; ++i )
+	{
+		eRes = ggHashTableAdd(&intDic, (void*)i, (void*)i);
+		EXPECT_EQ(GG_OK, eRes);
+	}
+
+	for( uint32_t i = 0; i < 500; ++i )
+	{
+		eRes = ggHashTableRemove(&intDic, (void*)i);
+		EXPECT_EQ(GG_OK, eRes);
+	}
+}

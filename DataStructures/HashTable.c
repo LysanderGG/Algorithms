@@ -5,7 +5,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define GG_HASHTABLE_DEFAULT_CAPACITY 53
+#define GG_HASHTABLE_DEFAULT_CAPACITY 17
 
 /* ------------------------------------------------------------------------- */
 
@@ -41,6 +41,19 @@ int32_t ggComp_str(const void* a, const void* b)
 
 /* ------------------------------------------------------------------------- */
 
+static void 
+_ggHashTableInitializeArray(ggHashItem* array, uint32_t size)
+{
+	/* Could use a memset or calloc but do it explicitly for clarity. */
+	for( uint32_t i = 0; i < size; ++i )
+	{
+		array[i].status = FREE;
+		array[i].hash = 0;
+		array[i].key = NULL;
+		array[i].value = NULL;
+	}
+}
+
 ggResult
 ggHashTableInitialize(ggHashTable* _this, hashFunc_t hashFunc, compFunc_t compFunc)
 {
@@ -51,18 +64,12 @@ ggHashTableInitialize(ggHashTable* _this, hashFunc_t hashFunc, compFunc_t compFu
 	GG_CONDITION(!_this->array, GG_OUT_OF_MEMORY);
 
 	_this->capacity = GG_HASHTABLE_DEFAULT_CAPACITY;
-	_this->nbItems = 0;
+	_this->nbItemsUsed = 0;
+	_this->nbItemsNotFree = 0;
 	_this->hashFunc = hashFunc;
 	_this->compFunc = compFunc;
 
-	/* Could use a memset or calloc but do it explicitly for clarity. */
-	for( uint32_t i = 0; i < _this->capacity; ++i )
-	{
-		_this->array[i].status = FREE;
-		_this->array[i].hash = 0;
-		_this->array[i].key = NULL;
-		_this->array[i].value = NULL;
-	}
+	_ggHashTableInitializeArray(_this->array, _this->capacity);
 
 	return GG_OK;
 }
@@ -74,35 +81,106 @@ ggHashTableFinalize(ggHashTable* _this)
 
 	free(_this->array);
 	_this->capacity = 0;
-	_this->nbItems = 0;
+	_this->nbItemsUsed = 0;
+	_this->nbItemsNotFree = 0;
 }
+
+/* ------------------------------------------------------------------------- */
+
+static void
+_ggHashTableAddItem(ggHashTable* _this, const void* key, const void* value, uint32_t hash)
+{
+	ggAssert(_this);
+
+	uint32_t reducedHash = hash % _this->capacity;
+	ggHashItem* item = _this->array + reducedHash;
+
+	for( uint32_t i = reducedHash + 1; i < _this->capacity && item->status == USED; ++i )
+	{
+		item = _this->array + i;
+	}
+	if( item->status == USED )
+	{
+		item = _this->array;
+		for( uint32_t i = 0; i < reducedHash && item->status == USED; ++i )
+		{
+			item = _this->array + i;
+		}
+	}
+
+	/* Should not happen as the hash table must have been resized earlier if nearly full. */
+	ggAssert(item->status != USED);
+
+	item->status = USED;
+	item->hash = hash;
+	item->key = key;
+	item->value = value;
+
+	++_this->nbItemsUsed;
+	++_this->nbItemsNotFree;
+}
+
+static ggResult
+_ggHashTableResize(ggHashTable* _this, uint32_t newCapacity)
+{
+	ggAssert(_this);
+	ggHashItem* newArray = malloc(newCapacity * sizeof(ggHashItem));
+	GG_CONDITION(!newArray, GG_OUT_OF_MEMORY);
+
+	ggHashItem* oldArray = _this->array;
+	uint32_t oldCapacity = _this->capacity;
+
+	_this->array = newArray;
+	_this->capacity = newCapacity;
+	_this->nbItemsUsed = 0;
+	_this->nbItemsNotFree = 0;
+
+	_ggHashTableInitializeArray(newArray, newCapacity);
+
+	for( uint32_t i = 0; i < oldCapacity; ++i )
+	{
+		ggHashItem item = oldArray[i];
+		if( item.status == USED )
+		{
+			_ggHashTableAddItem(_this, item.key, item.value, item.hash);
+		}
+	}
+	free(oldArray);
+
+	return GG_OK;
+}
+
+static ggResult
+_ggHashTableExpand(ggHashTable* _this)
+{
+	ggAssert(_this);
+
+	uint32_t newCapacity = _this->capacity * 2; // Todo: next prime
+	return _ggHashTableResize(_this, newCapacity);
+}
+
+static ggResult
+_ggHashTableShrink(ggHashTable* _this)
+{
+	ggAssert(_this);
+
+	uint32_t newCapacity = _this->capacity / 2; // Todo: next prime
+	return _ggHashTableResize(_this, newCapacity);
+}
+
 
 ggResult
 ggHashTableAdd(ggHashTable* _this, const void* key, const void* value)
 {
 	ggAssert(_this);
 
-	// TODO: add load factor
-	// TODO: resize if necessary
-
-	uint32_t hash = _this->hashFunc(key);
-	uint32_t reducedHash = hash % _this->capacity;
-	ggHashItem* item = _this->array + reducedHash;
-
-	for( uint32_t i = reducedHash; i < _this->capacity && item->status == USED; ++i, item = _this->array + i );
-	if( item->status == USED )
+	if( _this->nbItemsNotFree > _this->capacity * 2 / 3 )
 	{
-		item = _this->array;
-		for( uint32_t i = 0; i < reducedHash && item->status == USED; ++i, item = _this->array + i );
+		_ggHashTableExpand(_this);
 	}
 
-	/* Should not happen as the hash table must have been resized earlier if nearly full. */
-	ggAssert(item->status != USED);
-	
-	item->status = USED;
-	item->hash = hash;
-	item->key = key;
-	item->value = value;
+	uint32_t hash = _this->hashFunc(key);
+	_ggHashTableAddItem(_this, key, value, hash);
 
 	return GG_OK;
 }
@@ -181,6 +259,12 @@ ggHashTableRemove(ggHashTable* _this, const void* key)
 	}
 
 	_this->array[idx].status = DELETED;
+	--_this->nbItemsUsed;
+
+	if( _this->capacity > GG_HASHTABLE_DEFAULT_CAPACITY && _this->nbItemsUsed < _this->capacity / 4 )
+	{
+		_ggHashTableShrink(_this);
+	}
 
 	return GG_OK;
 }

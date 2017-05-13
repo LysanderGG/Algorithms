@@ -31,7 +31,8 @@ typedef struct ggHashItem {
 struct ggHashTable {
 	ggHashItem*		array;
 	uint32_t		capacity;
-	uint32_t		nbItems;
+	uint32_t		nbItemsUsed;
+	uint32_t		nbItemsNotFree;
 	hashFunc_t		hashFunc;
 	compFunc_t		compFunc;
 };
