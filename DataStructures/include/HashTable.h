@@ -12,9 +12,6 @@ extern "C" {
  * Hash Table using linear probing.
  */
 
-typedef uint32_t (*hashFunc_t)(const void* key);
-typedef int32_t (*compFunc_t)(const void* a, const void* b);
-
 typedef enum {
 	FREE,
 	USED,
@@ -41,10 +38,6 @@ struct ggHashTable {
 /* Default hash functions */
 uint32_t ggHash_int(const void* key);
 uint32_t ggHash_string(const void* key);
-
-/* Default comp functions */
-int32_t ggComp_int(const void* a, const void* b);
-int32_t ggComp_str(const void* a, const void* b);
 
 /* ------------------------------------------------------------------------- */
 
