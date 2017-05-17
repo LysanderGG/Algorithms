@@ -1,5 +1,12 @@
 Debug/*
+*/Debug/*
 UnitTests/Debug/*
 *.vcxproj.filters
 *.vcxproj.user
 .vs/
+*.dir/
+projects/
+CMakeFiles/*
+*/CMakeFiles/*
+cmake_install*
+Win32/*
