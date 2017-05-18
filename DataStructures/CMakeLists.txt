@@ -6,12 +6,14 @@ include_directories(
 set (HEADER_FILES
 	../Common/include/gg.h
 	include/Array.h
+	include/BST.h
 	include/HashTable.h
 	include/List.h
 )
 
 set (SOURCE_FILES
 	src/Array.c
+	src/BST.c
 	src/HashTable.c
 	src/List.c
 )

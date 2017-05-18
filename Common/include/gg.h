@@ -29,6 +29,7 @@ typedef enum ggResult {
 typedef struct ggPointerArray ggPointerArray;
 typedef struct ggHashTable ggHashTable;
 typedef struct ggList ggList;
+typedef struct ggBST ggBST;
 
 /* ------------------------------------------------------------------------- */
 
