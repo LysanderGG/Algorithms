@@ -170,18 +170,25 @@ ggBSTGetHeight(const ggBST* _this)
 	return _ggBSTNodeGetHeight(_this->root);
 }
 
+
+ggBSTNode*
+_ggBSTGetMinNode(ggBSTNode* node)
+{
+	if( !node ) { return NULL; }
+
+	while( node->leftChild ) {
+		node = node->leftChild;
+	}
+	return node;
+}
+
 int32_t
 ggBSTGetMin(const ggBST* _this)
 {
 	ggAssert(_this);
 	if( !_this->root ) { return INT32_MAX; }
 
-	ggBSTNode* node = _this->root;
-	while( node->leftChild ) {
-		node = node->leftChild;
-	}
-
-	return node->key;
+	return _ggBSTGetMinNode(_this->root)->key;
 }
 
 int32_t
@@ -213,10 +220,62 @@ ggBSTIsBST(const ggBST* _this)
 }
 
 
-void
-ggBSTDelete(const ggBST* _this, int32_t key)
+ggResult
+ggBSTDelete(ggBST* _this, int32_t key)
 {
-	// TODO
+	ggAssert(_this);
+	ggBSTNode* parent = NULL;
+	ggBSTNode* node = _this->root;
+
+	while( node && node->key != key )
+	{
+		parent = node;
+		node = (key < node->key) ? node->leftChild : node->rightChild;
+	}
+	GG_CONDITION(!node, GG_KEY_ERROR);
+
+	if( node->leftChild && node->rightChild )
+	{
+		/* most left node from the right child. */
+		ggBSTNode* mostLeftNode = _ggBSTGetMinNode(node->rightChild);
+		ggBSTNode* mostLeftParent = node;
+		while( mostLeftNode->leftChild ) {
+			mostLeftParent = mostLeftNode;
+			mostLeftNode = mostLeftNode->leftChild;
+		}
+
+		node->key = mostLeftNode->key;
+		node->data = mostLeftNode->data;
+
+		node = mostLeftNode;
+		parent = mostLeftParent;
+	}
+	else if( node->leftChild )
+	{
+		parent->leftChild = node->leftChild;
+	}
+	else if( node->rightChild )
+	{
+		parent->rightChild = node->rightChild;
+	}
+
+	if( parent )
+	{
+		if( parent->leftChild == node ) {
+			parent->leftChild = NULL;
+		}
+		else if( parent->rightChild == node ) {
+			parent->rightChild = NULL;
+		}
+	}
+	else
+	{
+		_this->root = NULL;
+	}
+
+	free(node);
+
+	return GG_OK;
 }
 
 /* ------------------------------------------------------------------------- */

@@ -38,7 +38,6 @@ TEST_F(BSTTest, Insert)
 		EXPECT_EQ(GG_OK, eRes);
 		EXPECT_EQ(i+1, ggBSTGetNodeCount(&m_bst));
 	}
-	// add test for height
 }
 
 TEST_F(BSTTest, GetNodeCount)
@@ -55,12 +54,11 @@ TEST_F(BSTTest, GetNodeCount)
 		EXPECT_EQ(i + 1, ggBSTGetNodeCount(&m_bst));
 	}
 
-	// TODO: remove tests
 	for( uint32_t i = 0; i < nbValues; ++i )
 	{
-		//eRes = ggBSTInsert(&m_bst, values[i], (void*)values[i]);
-		//EXPECT_EQ(GG_OK, eRes);
-		//EXPECT_EQ(i + 1, ggBSTGetNodeCount(&m_bst));
+		eRes = ggBSTDelete(&m_bst, values[i]);
+		EXPECT_EQ(GG_OK, eRes);
+		EXPECT_EQ(nbValues - i - 1, ggBSTGetNodeCount(&m_bst));
 	}
 
 }
@@ -193,6 +191,28 @@ TEST_F(BSTTest, IsBST)
 	for( uint32_t i = 0; i < nbValues; ++i )
 	{
 		eRes = ggBSTInsert(&m_bst, values[i], (void*)values[i]);
+		EXPECT_EQ(GG_OK, eRes);
+		EXPECT_TRUE(ggBSTIsBST(&m_bst));
+	}
+}
+
+TEST_F(BSTTest, Delete)
+{
+	ggResult eRes;
+	int32_t values[] = { 5, 2, 1, 4, 7 };
+	uint32_t nbValues = sizeof(values) / sizeof(*values);
+
+	EXPECT_EQ(GG_KEY_ERROR, ggBSTDelete(&m_bst, 1));
+
+	for( uint32_t i = 0; i < nbValues; ++i )
+	{
+		eRes = ggBSTInsert(&m_bst, values[i], (void*)values[i]);
+		EXPECT_EQ(GG_OK, eRes);
+	}
+
+	for( uint32_t i = 0; i < nbValues; ++i )
+	{
+		eRes = ggBSTDelete(&m_bst, values[i]);
 		EXPECT_EQ(GG_OK, eRes);
 		EXPECT_TRUE(ggBSTIsBST(&m_bst));
 	}

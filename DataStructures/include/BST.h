@@ -37,8 +37,8 @@ int32_t			ggBSTGetMax			(const ggBST* _this);
 /* Does not really make sense but could be adapted to check for an arbitrary BinaryTree. 
  * Return 1 if is BST, 0 otherwise. */
 int32_t			ggBSTIsBST			(const ggBST* _this);
-
-void			ggBSTDelete			(const ggBST* _this, int32_t key);
+/* Delete the node if found and preserve the BST property. Return GG_KEY_ERROR if no item with the key key is found. */
+ggResult		ggBSTDelete			(ggBST* _this, int32_t key);
 
 #ifdef __cplusplus
 }
